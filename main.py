@@ -1,7 +1,7 @@
 
 # import stuff
 import pygame
-from dot_obj import Dot, goal
+from dot_obj import Dot, goal, Obstacle
 import numpy as np
 import random
 
@@ -16,6 +16,7 @@ pygame.display.set_caption("Learnin Dots")
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 RED = (255,0,0)
+GREEN = (0,255,0)
 
 # Function to render text
 def render_text(text, x, y):
@@ -96,6 +97,11 @@ avg_fit = 0
 reachedgoaltotal = 0
 global_reachedgoaltotal = 0
 
+# you can comment these in or leave them out, or make new ones
+obstacles = [#Obstacle(300,0,50,550),
+             #Obstacle(650, 350, 50, 800)
+]
+
 # main loop
 running = True
 while running:
@@ -106,18 +112,21 @@ while running:
 
     # render the goals and the upper left hand display
     screen.fill(BLACK)
-    pygame.draw.circle(screen, RED, goal.pos, 17)
+    pygame.draw.circle(screen, GREEN, goal.pos, 17)
     render_text(f"Generation: {generation}", 1000, 50)
     render_text(f"avg fitness: {avg_fit}", 1000, 75)
     render_text(f"reached goal: {reachedgoaltotal}", 1000, 100)
     if generation > 1:
         render_text(f"avg reached goal: {(global_reachedgoaltotal/(generation-1)):.2f}", 1000, 125)
 
+    for obstacle in obstacles:
+        pygame.draw.rect(screen, RED, (obstacle.x, obstacle.y, obstacle.width, obstacle.height))
+
     # render the boys
     for dot in dots:
         pygame.draw.circle(screen, WHITE, dot.pos, 5)
         if dot.dead == False and dot.reachedgoal == False:
-            dot.update()
+            dot.update(obstacles)
         if goal.pos[0]-17 < dot.pos[0] < goal.pos[0]+17 and goal.pos[1]-17 < dot.pos[1] < goal.pos[1]+17:
             dot.reachedgoal = True
             dot.dead = True
