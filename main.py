@@ -1,9 +1,11 @@
+
+# import stuff
 import pygame
 from dot_obj import Dot, goal
 import numpy as np
 import random
 
-
+# initialization stuff
 pygame.init()
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
@@ -20,7 +22,7 @@ def render_text(text, x, y):
     text_surface = font.render(text, True, WHITE)
     screen.blit(text_surface, (x, y))
 
-# Create a function to generate multiple dots
+# function to generate multiple dots
 def create_generation_1(num_dots):
     dots = []
     for _ in range(num_dots):
@@ -32,12 +34,13 @@ def create_generation_1(num_dots):
         dots.append(new_dot)
     return dots
 
-
+# create the next generation
 def next_gen(num_dots, prev_gen):
+    # bad globals
     global avg_fit, reachedgoaltotal, global_reachedgoaltotal
     reachedgoaltotal = 0
     
-    # Calculate fitness for each dot
+    # this is probably terrible implementation, but it turns fitness into a probablility and chooses the parents based on that
     for dot in prev_gen:
         dot.fitnesscalc(goal)
     
@@ -45,21 +48,16 @@ def next_gen(num_dots, prev_gen):
     total_fitness = np.sum(fitnesses)
     avg_fit = total_fitness / len(prev_gen)
 
-    # Identify top scorer
     top_scorer_index = np.argmax(fitnesses)
     top_scorer = prev_gen[top_scorer_index].clone()
     gen = [top_scorer]
 
-    # Normalize fitnesses to sum to 1 for probability weights
     probabilities = fitnesses / total_fitness
     
-    # Select parents using probability weights
     parent_indices = np.random.choice(len(prev_gen), size=num_dots - 1, p=probabilities)
     parents = [prev_gen[index] for index in parent_indices]
 
-
-
-    # Pair up parents and use crossover to create new dots
+    # now breed the parents
     new_dots = []
     for i in range(0, len(parents), 2):
         parent1 = parents[i]
@@ -73,11 +71,13 @@ def next_gen(num_dots, prev_gen):
         child = parent1.crossover(parent2)
         new_dots.append(child)
     
+    # stuff for the upper left display
     for dot in prev_gen:
         if dot.reachedgoal:
             reachedgoaltotal += 1
             global_reachedgoaltotal += 1
 
+    # mutate those fuckers
     for new_dot in new_dots:
         new_dot.mutate()
 
@@ -87,7 +87,7 @@ def next_gen(num_dots, prev_gen):
 
 
 
-
+# more initializations
 dots = create_generation_1(1000)
 generation = 1
 goal = goal()
@@ -96,7 +96,7 @@ avg_fit = 0
 reachedgoaltotal = 0
 global_reachedgoaltotal = 0
 
-
+# main loop
 running = True
 while running:
 
@@ -104,6 +104,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # render the goals and the upper left hand display
     screen.fill(BLACK)
     pygame.draw.circle(screen, RED, goal.pos, 17)
     render_text(f"Generation: {generation}", 1000, 50)
@@ -112,6 +113,7 @@ while running:
     if generation > 1:
         render_text(f"avg reached goal: {(global_reachedgoaltotal/(generation-1)):.2f}", 1000, 125)
 
+    # render the boys
     for dot in dots:
         pygame.draw.circle(screen, WHITE, dot.pos, 5)
         if dot.dead == False and dot.reachedgoal == False:
@@ -120,6 +122,7 @@ while running:
             dot.reachedgoal = True
             dot.dead = True
 
+    # check if the boys are dead 
     if all(dot.dead == True for dot in dots):
         old_dots = dots
         for guy in dots:

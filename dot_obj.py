@@ -1,8 +1,11 @@
+
+# import stuff
 import random
 import numpy as np
 import math
 import copy
 
+# the BRAIN OF THE MACHINE
 class Brain:
     def __init__(self):
         self.gen = 0
@@ -12,8 +15,7 @@ class Brain:
         directions = np.random.randint(low=[0, -9], high=[5, 10], size=(700, 2))
         return directions.tolist()
 
-
-        
+# what these guys strive for in life
 class goal:
     def __init__(self):
         self.pos = [1100,400]
@@ -22,6 +24,7 @@ class goal:
         dist = math.sqrt((self.pos[0]-dotx)**2+(self.pos[1]-doty)**2)
         return dist
 
+# the guys
 class Dot:
     def __init__(self, pos, vel, acc):
         self.brain = Brain()
@@ -33,6 +36,7 @@ class Dot:
         self.step = 0
         self.reachedgoal = False
 
+    # how they know where to go
     def update(self):
         new_pos = self.pos
         new_pos += self.vel
@@ -56,12 +60,14 @@ class Dot:
         else:
             self.dead = True
 
+    # whos the best
     def fitnesscalc(self, goal):
         if self.reachedgoal == False:
             self.fitness = 1/(goal.dist(self.pos[0],self.pos[1])**2)
         else:
             self.fitness = 1/64 + (self.step)/75000
     
+    # copy a guy
     def clone(self):
         pos = np.array([25, 400])
         vel = np.array([0, 0])
@@ -70,17 +76,16 @@ class Dot:
         clone.brain = copy.deepcopy(self.brain)
         return clone
     
+    # makin babies
     def crossover(self, parent2): 
         pos = np.array([25, 400]) 
         vel = np.array([0, 0]) 
         acc = np.array([0, 0]) 
         child_brain = Brain()
         
-        # Random crossover point instead of fixed midpoint
         crossover_point = random.randint(0, len(self.brain.directions))
         child_brain.directions = copy.deepcopy(self.brain.directions[:crossover_point]) + copy.deepcopy(parent2.brain.directions[crossover_point:])
         
-        # Ensure the child brain directions list is of correct length
         if len(child_brain.directions) != len(self.brain.directions):
             raise ValueError("Error in crossover: child brain directions length mismatch.")
         
@@ -89,7 +94,7 @@ class Dot:
         return child_dot
 
 
-    
+    # random mutations
     def mutate(self):
         mutation_rate = .005
         for instruction in self.brain.directions:
